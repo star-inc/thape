@@ -2,7 +2,7 @@
 
 Casting container images to gzipped tarballs.
 
-Thape is a lightweight HTTP service that allows you to download container images as gzipped tarballs (.tar.gz) directly from your browser or any HTTP client.
+Thape is a lightweight HTTP service that allows you to download container images as gzipped tarballs (.tgz) directly from your browser or any HTTP client.
 
 The service is designed to be simple and efficient, providing an easy way to export container images for backup, distribution, or analysis purposes.
 
@@ -117,7 +117,7 @@ Returns information about how to use the Thape service, including examples for p
 
 > Download container image as gzipped tarball
 
-Downloads the specified container image as a gzipped tarball (.tar.gz).
+Downloads the specified container image as a gzipped tarball (.tgz).
 
 **Parameters:**
 - `image_name`: The name of the container image
@@ -156,7 +156,7 @@ curl -u username:password http://localhost:8080/private/image:tag
 
 The service returns the image as a gzipped tarball with appropriate headers:
 - `Content-Type: application/x-gzip`
-- `Content-Disposition: attachment; filename="{image_name}_{tag}.tar.gz"`
+- `Content-Disposition: attachment; filename="{image_name}_{tag}.tgz"`
 
 ## License
 

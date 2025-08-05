@@ -27,7 +27,7 @@ func SetupRouter(engine *gin.Engine) {
 // handleRoot returns service information and usage instructions
 func handleRoot(c *gin.Context) {
 	c.String(http.StatusOK, "Thape\n\n"+
-		"For downloading a gzipped tarball (.tar.gz) of the container image.\n\n"+
+		"For downloading a gzipped tarball (.tgz) of the container image.\n\n"+
 		"Public Image: /<image_name>:<tag>\n"+
 		"Example: /alpine:latest\n\n"+
 		"Private Image (URL Auth): <user>:<pass>@localhost/<your_server>/<image_name>:<tag>\n"+
@@ -104,9 +104,9 @@ func handleImageRequest(c *gin.Context) {
 	// Handle optional custom filename
 	fileName := ""
 	if customName := c.Query("name"); customName != "" {
-		fileName = customName + ".tar.gz"
+		fileName = customName + ".tgz"
 	} else {
-		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tar.gz"
+		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
 	}
 
 	c.Header("Content-Disposition", "attachment; filename="+url.QueryEscape(fileName))
