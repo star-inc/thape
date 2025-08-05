@@ -5,6 +5,7 @@ go 1.24.3
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/go-containerregistry v0.20.6
+	github.com/joho/godotenv v1.5.1
 	github.com/star-inc/nui.go v0.0.0-20230725174303-d318a71004b6
 )
 
