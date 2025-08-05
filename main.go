@@ -21,7 +21,7 @@ import (
 
 // Config constants for the Thape service.
 const (
-	configAddress nui.EnvKey = "http://localhost:8080"
+	configAddress nui.EnvKey = "THAPE_ADDRESS"
 )
 
 // setupRouter initializes the Gin router with the necessary routes and handlers.

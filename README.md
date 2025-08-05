@@ -22,10 +22,8 @@ To build and run Thape:
 
 ```bash
 go build
-./thape
+THAPE_ADDRESS="http://0.0.0.0:8080" ./thape
 ```
-
-By default, the service will start on `http://localhost:8080`.
 
 ## System Architecture
 
@@ -44,13 +42,13 @@ The service supports:
 The service uses environment variables for configuration:
 
 ```bash
-# Set the listening address (default: http://localhost:8080)
-export configAddress="http://0.0.0.0:3000"
+# Set the listening address (required)
+THAPE_ADDRESS="http://0.0.0.0:8080"
 ```
 
 The configuration is managed using the `nui.go` package, which reads environment variables and provides a clean interface for configuration management.
 
-If the required environment variable is not set, the service will use the default value specified in the configuration constants.
+**Note:** The `THAPE_ADDRESS` environment variable is required. The service will not start without it.
 
 ## Dependencies
 
