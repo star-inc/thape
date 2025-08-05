@@ -21,8 +21,14 @@ The service is designed to work with:
 To build and run Thape:
 
 ```bash
-go build
-THAPE_ADDRESS="http://0.0.0.0:8080" ./thape
+# Using Makefile
+make
+cp .env.sample .env
+./build/thape
+
+# Or manually
+go build ./cmd/thape
+APP_MODE=development HTTP_HOST=localhost HTTP_PORT=8080 ./thape
 ```
 
 ## System Architecture
@@ -42,13 +48,20 @@ The service supports:
 The service uses environment variables for configuration:
 
 ```bash
-# Set the listening address (required)
-THAPE_ADDRESS="http://0.0.0.0:8080"
+APP_MODE=development
+HTTP_HOST=localhost
+HTTP_PORT=8080
 ```
 
 The configuration is managed using the `nui.go` package, which reads environment variables and provides a clean interface for configuration management.
 
-**Note:** The `THAPE_ADDRESS` environment variable is required. The service will not start without it.
+You can copy the `.env.sample` file to `.env` and modify it according to your needs:
+
+```bash
+cp .env.sample .env
+```
+
+**Note:** All environment variables are required. The service will not start without them.
 
 ## Dependencies
 
@@ -60,13 +73,14 @@ go mod download
 
 ## Development Environment
 
-For development with hot-reload capabilities, you can use tools like `air`:
+For development with hot-reload capabilities:
 
 ```bash
-# Install air for hot reloading
-go install github.com/cosmtrek/air@latest
+# Using Makefile (recommended)
+make dev
 
-# Run with hot reload
+# Or manually install air
+go install github.com/air-verse/air@latest
 air
 ```
 
@@ -75,7 +89,12 @@ air
 Build and run the service for production:
 
 ```bash
-go build -o thape
+# Using Makefile
+make
+./build/thape
+
+# Or manually
+go build -o thape ./cmd/thape
 ./thape
 ```
 
