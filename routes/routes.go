@@ -1,11 +1,9 @@
-// thape - Casting container images to gzipped tarballs.
+// thape - casting container images to gzipped tarballs.
 // (c) 2025 Star Inc.
 
-package main
+package routes
 
 import (
-	_ "github.com/joho/godotenv/autoload"
-
 	"compress/gzip"
 	"log"
 	"net/http"
@@ -18,41 +16,25 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
-	"github.com/star-inc/nui.go"
 )
 
-// Config constants for the Thape service.
-const (
-	configAddress nui.EnvKey = "THAPE_ADDRESS"
-)
+// SetupRouter sets up the main routes for the Thape service
+func SetupRouter(engine *gin.Engine) {
+	engine.GET("/", handleRoot)
+	engine.GET("/*imagePath", handleImageRequest)
+}
 
-// setupRouter initializes the Gin router with the necessary routes and handlers.
-// It sets up the root route for the welcome message and the image request handler.
-//
-// The root route provides information on how to use the service, including examples of public and private image requests.
-// The image request handler processes requests for container images, pulling them and returning them as gzipped tarballs.
-//
-// The image request handler supports:
-// - Public images in the format: /<image_name>:<tag>
-// - Private images with HTTP Basic Auth in the format: <user>:<pass>@localhost/<your_server>/<image_name>:<tag>
-func setupRouter() *gin.Engine {
-	router := gin.Default()
-
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Thape\n\n"+
-			"For downloading a gzipped tarball (.tar.gz) of the container image.\n\n"+
-			"Public Image: /<image_name>:<tag>\n"+
-			"Example: /alpine:latest\n\n"+
-			"Private Image (URL Auth): <user>:<pass>@localhost/<your_server>/<image_name>:<tag>\n"+
-			"Example: user:pass@localhost/10.0.0.1/my-image:1.0\n\n"+
-			"Optional Query Parameters:\n"+
-			"?arch=<architecture>  (e.g., ?arch=linux/arm64)\n"+
-			"?name=<custom_name>   (e.g., ?name=my-alpine-service)")
-	})
-
-	router.GET("/*imagePath", handleImageRequest)
-
-	return router
+// handleRoot returns service information and usage instructions
+func handleRoot(c *gin.Context) {
+	c.String(http.StatusOK, "Thape\n\n"+
+		"For downloading a gzipped tarball (.tar.gz) of the container image.\n\n"+
+		"Public Image: /<image_name>:<tag>\n"+
+		"Example: /alpine:latest\n\n"+
+		"Private Image (URL Auth): <user>:<pass>@localhost/<your_server>/<image_name>:<tag>\n"+
+		"Example: user:pass@localhost/10.0.0.1/my-image:1.0\n\n"+
+		"Optional Query Parameters:\n"+
+		"?arch=<architecture>  (e.g., ?arch=linux/arm64)\n"+
+		"?name=<custom_name>   (e.g., ?name=my-alpine-service)")
 }
 
 // handleImageRequest processes the image request, pulling the image and returning it as a gzipped tarball.
@@ -138,19 +120,4 @@ func handleImageRequest(c *gin.Context) {
 	}
 
 	log.Printf("Successfully sent gzipped image: %s", ref.Name())
-}
-
-// main initializes the Gin router and starts the server.
-func main() {
-	// Initialize the router
-	router := setupRouter()
-
-	// Construct the listening address
-	address := nui.String(configAddress)
-	log.Printf("Server starting, listening on http://%s", address)
-
-	// Start the server
-	if err := router.Run(address); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
 }
