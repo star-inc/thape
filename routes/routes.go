@@ -116,6 +116,7 @@ func handleImageRequest(c *gin.Context) {
 	fileName := ""
 	if customName := c.Query("name"); customName != "" {
 		fileName = customName + ".tgz"
+		name.NewTag(customName)
 	} else {
 		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
 	}
