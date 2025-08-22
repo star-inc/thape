@@ -3,7 +3,10 @@
 
 package config
 
-import "github.com/star-inc/nui.go"
+import (
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/star-inc/nui.go"
+)
 
 // init general config
 var (

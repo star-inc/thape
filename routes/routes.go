@@ -5,6 +5,7 @@ package routes
 
 import (
 	"compress/gzip"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,12 +21,22 @@ import (
 
 // SetupRouter sets up the main routes for the Thape service
 func SetupRouter(engine *gin.Engine) {
-	engine.GET("/", handleRoot)
-	engine.GET("/*imagePath", handleImageRequest)
+	engine.GET("/*imagePath", handleRoot)
+}
+
+// askChallenge handles the Browser HTTP Basic Auth Challenge
+func askChallenge(c *gin.Context, imageName string) {
+	c.Header("WWW-Authenticate", fmt.Sprintf(`Basic realm="Thape Registry Challenge: %s"`, imageName))
+	c.String(http.StatusUnauthorized, fmt.Sprintf("Authentication required for pulling %s", imageName))
 }
 
 // handleRoot returns service information and usage instructions
 func handleRoot(c *gin.Context) {
+	if c.Param("imagePath") != "/" {
+		handleImageRequest(c)
+		return
+	}
+
 	c.String(http.StatusOK, "Thape\n\n"+
 		"For downloading a gzipped tarball (.tgz) of the container image.\n\n"+
 		"Public Image: /<image_name>:<tag>\n"+
@@ -94,7 +105,7 @@ func handleImageRequest(c *gin.Context) {
 	if err != nil {
 		log.Printf("Failed to pull image '%s': %v", ref.Name(), err)
 		if strings.Contains(err.Error(), "UNAUTHORIZED") {
-			c.String(http.StatusUnauthorized, "Authentication failed (UNAUTHORIZED). Please check your credentials.")
+			askChallenge(c, ref.Name())
 		} else {
 			c.String(http.StatusInternalServerError, "Failed to pull image: %v", err)
 		}
