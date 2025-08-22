@@ -116,7 +116,11 @@ func handleImageRequest(c *gin.Context) {
 	fileName := ""
 	if customName := c.Query("name"); customName != "" {
 		fileName = customName + ".tgz"
-		name.NewTag(customName)
+		ref, err = name.NewTag(customName)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid custom name: %v", err)
+			return
+		}
 	} else {
 		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
 	}
