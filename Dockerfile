@@ -11,6 +11,7 @@ RUN apk add git make \
 
 FROM alpine:latest
 ENV GIN_MODE release
+COPY --from=builder /factory/LICENSE /app/LICENSE
 COPY --from=builder /factory/.env.sample /app/.env
 COPY --from=builder /factory/build/thape /app/thape
 WORKDIR /app
