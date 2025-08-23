@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,9 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
+
+// validTag is a regular expression that matches valid image tags.
+var validTag = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
 
 // SetupRouter sets up the main routes for the Thape service
 func SetupRouter(engine *gin.Engine) {
@@ -63,12 +67,14 @@ func handleRoot(c *gin.Context) {
 // - Public image: /alpine:latest
 // - Private image: user:pass@localhost/10.0.0.1/my-image:1.0
 func handleImageRequest(c *gin.Context) {
+	// Validate image path
 	fullImagePath := strings.TrimPrefix(c.Param("imagePath"), "/")
 	if fullImagePath == "" {
 		c.String(http.StatusBadRequest, "Bad request: image name is required.")
 		return
 	}
 
+	// Define image name and options
 	imageName := fullImagePath
 	var craneOpts []crane.Option
 
@@ -93,14 +99,17 @@ func handleImageRequest(c *gin.Context) {
 		craneOpts = append(craneOpts, crane.WithPlatform(platform))
 	}
 
+	// Validate image name and tag
 	ref, err := name.ParseReference(imageName)
 	if err != nil {
 		c.String(http.StatusBadRequest, "Invalid image name '%s': %v", imageName, err)
 		return
 	}
 
+	// Log the image processing request
 	log.Printf("Request received, processing image: %s", ref.Name())
 
+	// Pull the image
 	img, err := crane.Pull(ref.Name(), craneOpts...)
 	if err != nil {
 		log.Printf("Failed to pull image '%s': %v", ref.Name(), err)
@@ -117,7 +126,7 @@ func handleImageRequest(c *gin.Context) {
 	if customName := c.Query("name"); customName != "" {
 		fileName = customName + ".tgz"
 		ref, err = name.NewTag(customName)
-		if err != nil {
+		if err != nil || validTag.FindStringIndex(customName) == nil {
 			c.String(http.StatusBadRequest, "Invalid custom name: %v", err)
 			return
 		}
@@ -125,15 +134,19 @@ func handleImageRequest(c *gin.Context) {
 		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
 	}
 
+	// Set headers for the response
 	c.Header("Content-Disposition", "attachment; filename="+url.QueryEscape(fileName))
 	c.Header("Content-Type", "application/x-gzip")
 
+	// Create a gzip writer
 	gzipWriter := gzip.NewWriter(c.Writer)
 	defer gzipWriter.Close()
 
+	// Write the tarball to the gzip writer
 	if err := tarball.Write(ref, img, gzipWriter); err != nil {
 		log.Printf("Error streaming gzipped tarball to client: %v", err)
 	}
 
+	// Log the successful image send
 	log.Printf("Successfully sent gzipped image: %s", ref.Name())
 }
