@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -19,9 +18,6 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
-
-// validTag is a regular expression that matches valid image tags.
-var validTag = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
 
 // SetupRouter sets up the main routes for the Thape service
 func SetupRouter(engine *gin.Engine) {
@@ -121,21 +117,22 @@ func handleImageRequest(c *gin.Context) {
 		return
 	}
 
-	// Handle optional custom filename
+	// Handle and validate optional custom filename
 	fileName := ""
-	if customName := c.Query("name"); customName != "" {
+	if customName := c.Query("name"); customName == "" {
+		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
+	} else {
 		fileName = customName + ".tgz"
 		ref, err = name.NewTag(customName)
-		if err != nil || validTag.FindStringIndex(customName) == nil {
+		if err != nil {
 			c.String(http.StatusBadRequest, "Invalid custom name: %v", err)
 			return
 		}
-	} else {
-		fileName = strings.Replace(ref.Context().RepositoryStr(), "/", "_", -1) + "_" + ref.Identifier() + ".tgz"
 	}
 
 	// Set headers for the response
-	c.Header("Content-Disposition", "attachment; filename="+url.QueryEscape(fileName))
+	downloadName := url.QueryEscape(fileName)
+	c.Header("Content-Disposition", "attachment; filename="+downloadName)
 	c.Header("Content-Type", "application/x-gzip")
 
 	// Create a gzip writer
