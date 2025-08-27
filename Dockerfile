@@ -15,5 +15,17 @@ COPY --from=builder /factory/LICENSE /app/LICENSE
 COPY --from=builder /factory/.env.sample /app/.env
 COPY --from=builder /factory/build/thape /app/thape
 WORKDIR /app
+RUN addgroup \
+    -g 3000 \
+    scarlet
+RUN adduser -HD \
+    -u 3000 \
+    -G scarlet \
+    -h /app \
+    flandre
+RUN chown -R \
+    3000:3000 \
+    /app
 ENTRYPOINT ["/app/thape"]
+USER 3000
 EXPOSE 6000
